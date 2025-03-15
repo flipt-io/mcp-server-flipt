@@ -928,40 +928,6 @@ server.tool(
   }
 );
 
-server.tool(
-  'order_rules',
-  {
-    namespaceKey: z.string().min(1),
-    flagKey: z.string().min(1),
-    ruleIds: z.array(z.string().min(1)),
-  },
-  async args => {
-    try {
-      await fliptClient.orderRules(args.namespaceKey, args.flagKey, args.ruleIds);
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Successfully reordered rules for flag ${args.flagKey}`,
-          },
-        ],
-      };
-    } catch (error: any) {
-      console.error('Error ordering rules:', error);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Failed to order rules: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-);
-
 // Distribution tools
 server.tool(
   'create_distribution',
@@ -1134,40 +1100,6 @@ server.tool(
   }
 );
 
-server.tool(
-  'order_rollouts',
-  {
-    namespaceKey: z.string().min(1),
-    flagKey: z.string().min(1),
-    rolloutIds: z.array(z.string().min(1)),
-  },
-  async args => {
-    try {
-      await fliptClient.orderRollouts(args.namespaceKey, args.flagKey, args.rolloutIds);
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Successfully reordered rollouts for flag ${args.flagKey}`,
-          },
-        ],
-      };
-    } catch (error: any) {
-      console.error('Error ordering rollouts:', error);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Failed to order rollouts: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-);
-
 // Now let's add some prompts for common tasks
 server.prompt(
   'create_boolean_flag',
@@ -1269,6 +1201,42 @@ server.prompt(
         content: {
           type: 'text',
           text: `${args.enabled === 'true' ? 'Enable' : 'Disable'} flag "${args.flagKey}" in namespace "${args.namespaceKey}".`,
+        },
+      },
+    ],
+  })
+);
+
+server.prompt(
+  'list_enabled_flags',
+  {
+    namespaceKey: z.string().min(1),
+  },
+  args => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `List all enabled flags in namespace "${args.namespaceKey}".`,
+        },
+      },
+    ],
+  })
+);
+
+server.prompt(
+  'list_disabled_flags',
+  {
+    namespaceKey: z.string().min(1),
+  },
+  args => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `List all disabled flags in namespace "${args.namespaceKey}".`,
         },
       },
     ],
