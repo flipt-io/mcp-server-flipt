@@ -1,5 +1,5 @@
 {
-  "name": "flipt-mcp-server",
+  "name": "@flipt-io/mcp-server-flipt",
   "version": "0.1.0",
   "description": "Model Context Protocol server for Flipt",
   "main": "dist/index.js",

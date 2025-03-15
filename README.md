@@ -14,13 +14,13 @@ A Model Context Protocol (MCP) server for [Flipt](https://flipt.io), allowing AI
 You can install the package globally:
 
 ```bash
-npm install -g flipt-mcp-server
+npm install -g @flipt-io/mcp-server-flipt
 ```
 
 Or run it directly with npx:
 
 ```bash
-npx flipt-mcp-server
+npx @flipt-io/mcp-server-flipt
 ```
 
 ## Configuration
