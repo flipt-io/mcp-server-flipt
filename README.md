@@ -30,6 +30,7 @@ The server can be configured using environment variables:
 - `MCP_SERVER_PORT`: The port to run the server on (default: 3000)
 - `MCP_SERVER_HOST`: The host to bind to (default: localhost)
 - `FLIPT_API_URL`: The URL of the Flipt API (default: <http://localhost:8080>)
+- `FLIPT_API_KEY`: The API key to use for the Flipt API (optional)
 
 You can set these in a `.env` file in the directory where you run the server.
 
