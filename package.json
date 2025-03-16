@@ -1,11 +1,11 @@
 {
   "name": "@flipt-io/mcp-server-flipt",
-  "version": "0.0.1-rc.1",
+  "version": "0.0.1-rc.2",
   "description": "Model Context Protocol server for Flipt",
   "main": "dist/index.js",
   "type": "commonjs",
   "bin": {
-    "flipt-mcp-server": "./bin/cli.js"
+    "mcp-server-flipt": "./bin/cli.js"
   },
   "files": [
     "dist",
