@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 
 // Import from the generated API
-import { createConfiguration } from '../generated/api/index';
+import { BearerAuthAuthentication, createConfiguration } from '../generated/api/index';
 import { ServerConfiguration } from '../generated/api/servers';
 import {
   FlagsServiceApi,
@@ -31,20 +31,28 @@ export class FliptClient {
   private constraintsApi: ConstraintsServiceApi;
   private distributionsApi: DistributionsServiceApi;
   private evaluationApi: EvaluationServiceApi;
+
   private baseUrl: string;
+  private apiKey: string | undefined;
 
   constructor() {
     // Load environment variables
     dotenv.config();
 
     this.baseUrl = process.env.FLIPT_URL || 'http://localhost:8080';
+    this.apiKey = process.env.FLIPT_API_KEY || undefined;
 
-    // Create a server configuration with the base URL
     const serverConfig = new ServerConfiguration<{}>(this.baseUrl, {});
 
     const config = createConfiguration({
       baseServer: serverConfig,
     });
+
+    if (this.apiKey) {
+      config.authMethods.default = new BearerAuthAuthentication({
+        getToken: () => Promise.resolve(this.apiKey as string),
+      });
+    }
 
     this.flagsApi = new FlagsServiceApi(config);
     this.namespacesApi = new NamespacesServiceApi(config);

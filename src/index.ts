@@ -17,7 +17,7 @@ const fliptClient = new FliptClient();
 // Create MCP server
 const server = new McpServer({
   name: 'Flipt MCP Server',
-  version: '0.1.0',
+  version: '0.0.1',
 });
 
 // Define tools for reading, creating, updating, and deleting resources

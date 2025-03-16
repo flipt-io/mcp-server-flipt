@@ -45,12 +45,19 @@ export class BearerAuthAuthentication implements SecurityAuthentication {
  * Applies http authentication to the request context.
  */
 export class JwtAuthAuthentication implements SecurityAuthentication {
+    /**
+     * Configures the http authentication with the required details.
+     *
+     * @param tokenProvider service that can provide the up-to-date token when needed
+     */
+    public constructor(private tokenProvider: TokenProvider) {}
 
     public getName(): string {
         return "jwtAuth";
     }
 
-    public applySecurityAuthentication(context: RequestContext) {
+    public async applySecurityAuthentication(context: RequestContext) {
+        context.setHeaderParam("Authorization", "JWT " + await this.tokenProvider.getToken());
     }
 }
 
@@ -70,7 +77,7 @@ export type HttpSignatureConfiguration = unknown; // TODO: Implement
 export type AuthMethodsConfiguration = {
     "default"?: SecurityAuthentication,
     "bearerAuth"?: HttpBearerConfiguration,
-    "jwtAuth"?: SecurityAuthentication
+    "jwtAuth"?: HttpBearerConfiguration
 }
 
 /**
@@ -93,6 +100,7 @@ export function configureAuthMethods(config: AuthMethodsConfiguration | undefine
 
     if (config["jwtAuth"]) {
         authMethods["jwtAuth"] = new JwtAuthAuthentication(
+            config["jwtAuth"]["tokenProvider"]
         );
     }
 
