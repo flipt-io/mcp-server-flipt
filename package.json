@@ -1,6 +1,6 @@
 {
   "name": "@flipt-io/mcp-server-flipt",
-  "version": "0.0.1-rc.3",
+  "version": "0.0.1-rc.4",
   "description": "Model Context Protocol server for Flipt",
   "main": "dist/index.js",
   "type": "commonjs",
@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
-    "start": "node dist/index.js",
+    "start": "node bin/cli.js",
     "dev": "tsx src/index.ts",
     "test": "jest",
     "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/generated/**'",
@@ -25,7 +25,8 @@
     "fmt": "prettier --write 'src/**/*.ts' --ignore-path .prettierignore",
     "fmt:check": "prettier --check 'src/**/*.ts' --ignore-path .prettierignore",
     "prepublishOnly": "npm run build",
-    "postbuild": "shx chmod +x bin/cli.js"
+    "postbuild": "shx chmod +x dist/*.js bin/cli.js",
+    "prepare": "npm run build && shx chmod +x bin/cli.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
