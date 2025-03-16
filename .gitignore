@@ -1,7 +1,3 @@
-# Ignore bin directory but keep cli.js
-bin/*
-!bin/cli.js
-
 # Dependency directories
 node_modules/
 jspm_packages/
