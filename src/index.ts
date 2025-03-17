@@ -4,23 +4,26 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import { FliptClient } from './services/fliptClient';
+import { VERSION } from './version';
 
-// Load environment variables
 dotenv.config();
 
 const PORT = process.env.MCP_SERVER_PORT ? parseInt(process.env.MCP_SERVER_PORT) : 3000;
 const HOST = process.env.MCP_SERVER_HOST || 'localhost';
 
-// Create Flipt client
 const fliptClient = new FliptClient();
 
-// Create MCP server
-const server = new McpServer({
-  name: 'Flipt MCP Server',
-  version: '0.0.1',
-});
-
-// Define tools for reading, creating, updating, and deleting resources
+const server = new McpServer(
+  {
+    name: 'Flipt MCP Server',
+    version: VERSION,
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
 
 // Namespace tools
 server.tool('list_namespaces', {}, async args => {
@@ -1260,7 +1263,7 @@ function startServer() {
 
   // Start the HTTP server (for the status endpoint)
   const httpServer = app.listen(PORT, HOST, () => {
-    console.log(`Flipt MCP Server running at http://${HOST}:${PORT}`);
+    console.log(`Flipt MCP Server running`);
     console.log(`Status endpoint available at http://${HOST}:${PORT}/status`);
     console.log('STDIO transport active for MCP communication');
   });
