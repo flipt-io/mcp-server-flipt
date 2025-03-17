@@ -4,6 +4,8 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt](https://flipt.io), allowing AI assistants to interact with feature flags.
 
+<img width="2060" alt="mcp" src="https://github.com/user-attachments/assets/cc32a6dd-5368-43c1-897a-a0ccfeeacaf0" />
+
 ## Features
 
 - List, create, update, and delete namespaces, flags, segments, rules, and more
