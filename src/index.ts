@@ -1250,7 +1250,6 @@ function startServer() {
   console.log(`Flipt MCP Server running`);
 }
 
-
 // If this file is run directly, start the server
 if (require.main === module) {
   startServer();
