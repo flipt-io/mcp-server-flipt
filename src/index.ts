@@ -78,7 +78,32 @@ server.tool(
   },
   async args => {
     try {
-      const namespace = await fliptClient.updateNamespace(args.key, args.name, args.description);
+      const currentNamespace = await fliptClient.getNamespace(args.key);
+      if (!currentNamespace) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Namespace ${args.key} not found`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // update changed fields
+      const updatedNamespace = {
+        ...currentNamespace,
+        name: args.name || currentNamespace.name,
+        description: args.description || currentNamespace.description,
+      };
+
+      const namespace = await fliptClient.updateNamespace(
+        currentNamespace.key!,
+        updatedNamespace.name!,
+        updatedNamespace.description
+      );
+
       return {
         content: [
           {
@@ -263,13 +288,35 @@ server.tool(
   },
   async args => {
     try {
+      const currentFlag = await fliptClient.getFlag(args.namespaceKey, args.key);
+      if (!currentFlag) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Flag ${args.key} in namespace ${args.namespaceKey} not found`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // update changed fields
+      const updatedFlag = {
+        ...currentFlag,
+        name: args.name || currentFlag.name,
+        description: args.description || currentFlag.description,
+        enabled: args.enabled || currentFlag.enabled,
+      };
+
       const flag = await fliptClient.updateFlag(
-        args.namespaceKey,
-        args.key,
-        args.name,
-        args.description,
-        args.enabled
+        currentFlag.namespaceKey!,
+        currentFlag.key!,
+        updatedFlag.name!,
+        updatedFlag.description,
+        updatedFlag.enabled
       );
+
       return {
         content: [
           {
@@ -341,7 +388,7 @@ server.tool(
       await fliptClient.updateFlag(
         args.namespaceKey,
         args.flagKey,
-        currentFlag.name || 'Unnamed Flag',
+        currentFlag.name!,
         currentFlag.description,
         args.enabled
       );
@@ -499,13 +546,35 @@ server.tool(
   },
   async args => {
     try {
+      const currentSegment = await fliptClient.getSegment(args.namespaceKey, args.key);
+      if (!currentSegment) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Segment ${args.key} in namespace ${args.namespaceKey} not found`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // update changed fields
+      const updatedSegment = {
+        ...currentSegment,
+        name: args.name || currentSegment.name,
+        description: args.description || currentSegment.description,
+        matchType: args.matchType || currentSegment.matchType,
+      };
+
       const segment = await fliptClient.updateSegment(
-        args.namespaceKey,
-        args.key,
-        args.name,
-        args.description,
-        args.matchType
+        currentSegment.namespaceKey!,
+        currentSegment.key!,
+        updatedSegment.name!,
+        updatedSegment.description,
+        updatedSegment.matchType
       );
+
       return {
         content: [
           {
