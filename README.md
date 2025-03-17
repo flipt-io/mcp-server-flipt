@@ -39,7 +39,7 @@ npx -y @flipt-io/mcp-server-flipt
 You can also run the server in a Docker container:
 
 ```bash
-docker run -d --name mcp-server-flipt FLIPT_API_URL=http://localhost:8080 flipt-io/mcp-server-flipt
+docker run -d --name mcp-server-flipt ghcr.io/flipt-io/mcp-server-flipt:latest
 ```
 
 ## Configuration
