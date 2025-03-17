@@ -1,4 +1,3 @@
-import express from 'express';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -7,9 +6,6 @@ import { FliptClient } from './services/fliptClient';
 import { VERSION } from './version';
 
 dotenv.config();
-
-const PORT = process.env.MCP_SERVER_PORT ? parseInt(process.env.MCP_SERVER_PORT) : 3000;
-const HOST = process.env.MCP_SERVER_HOST || 'localhost';
 
 const fliptClient = new FliptClient();
 
@@ -1248,28 +1244,12 @@ server.prompt(
 
 // Function to start the server
 function startServer() {
-  // Set up HTTP server with STDIO transport
-  const app = express();
-  app.use(express.json());
-
-  // Add a simple status endpoint
-  app.get('/status', (req, res) => {
-    res.json({ status: 'ok', server: 'Flipt MCP Server', version: '0.1.0' });
-  });
-
   // Connect the server to STDIO transport
   const transport = new StdioServerTransport();
   server.connect(transport);
-
-  // Start the HTTP server (for the status endpoint)
-  const httpServer = app.listen(PORT, HOST, () => {
-    console.log(`Flipt MCP Server running`);
-    console.log(`Status endpoint available at http://${HOST}:${PORT}/status`);
-    console.log('STDIO transport active for MCP communication');
-  });
-
-  return httpServer;
+  console.log(`Flipt MCP Server running`);
 }
+
 
 // If this file is run directly, start the server
 if (require.main === module) {
