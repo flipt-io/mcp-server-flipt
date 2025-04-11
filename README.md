@@ -1,6 +1,7 @@
 # Flipt MCP Server
 
 [![mcp-server-flipt](https://img.shields.io/npm/v/@flipt-io/mcp-server-flipt?label=%40flipt-io%2Fmcp-server-flipt)](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt)
+[![smithery badge](https://smithery.ai/badge/@flipt-io/mcp-server-flipt)](https://smithery.ai/install/@flipt-io/mcp-server-flipt)
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt](https://flipt.io), allowing AI assistants to interact with feature flags.
 
@@ -21,6 +22,14 @@ Once the server is running, it will:
 2. Register tools and prompts for interacting with Flipt
 
 The server is designed to be used with AI assistants that support the Model Context Protocol.
+
+### Installing via Smithery
+
+To install Flipt MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/install/@flipt-io/mcp-server-flipt):
+
+```bash
+npx -y @smithery/cli install @flipt-io/mcp-server-flipt --client claude
+```
 
 ### Node
 
