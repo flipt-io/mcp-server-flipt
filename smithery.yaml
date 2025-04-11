@@ -1,0 +1,29 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - fliptApiUrl
+    properties:
+      fliptApiUrl:
+        type: string
+        default: http://localhost:8080
+        description: URL of the Flipt API
+      fliptApiKey:
+        type: string
+        default: ""
+        description: Optional API key for the Flipt API
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'node',
+      args: ['bin/cli.js'],
+      env: Object.assign({ NODE_ENV: 'production', FLIPT_API_URL: config.fliptApiUrl }, config.fliptApiKey ? { FLIPT_API_KEY: config.fliptApiKey } : {})
+    })
+  exampleConfig:
+    fliptApiUrl: http://localhost:8080
+    fliptApiKey: your-api-key
