@@ -1,6 +1,8 @@
 # Flipt MCP Server
 
 [![mcp-server-flipt](https://img.shields.io/npm/v/@flipt-io/mcp-server-flipt?label=%40flipt-io%2Fmcp-server-flipt)](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt)
+
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/flipt-io/mcp-server-flipt)](https://archestra.ai/mcp-catalog/flipt-io__mcp-server-flipt)
 [![smithery badge](https://smithery.ai/badge/@flipt-io/mcp-server-flipt)](https://smithery.ai/install/@flipt-io/mcp-server-flipt)
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt](https://flipt.io), allowing AI assistants to interact with feature flags.
