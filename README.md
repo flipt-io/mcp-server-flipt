@@ -1,9 +1,8 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/mseep-audited.png)](https://mseep.ai/app/flipt-io-mcp-server-flipt)
-
 # Flipt MCP Server
 
 [![mcp-server-flipt](https://img.shields.io/npm/v/@flipt-io/mcp-server-flipt?label=%40flipt-io%2Fmcp-server-flipt)](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt)
 [![smithery badge](https://smithery.ai/badge/@flipt-io/mcp-server-flipt)](https://smithery.ai/install/@flipt-io/mcp-server-flipt)
+[![MseeP.ai Security Assessment Badge](https://mseep.net/mseep-audited.png)](https://mseep.ai/app/flipt-io-mcp-server-flipt)
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt](https://flipt.io), allowing AI assistants to interact with feature flags.
 
