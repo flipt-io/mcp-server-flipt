@@ -7,6 +7,10 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [F
 
 <img width="2060" alt="mcp" src="https://github.com/user-attachments/assets/cc32a6dd-5368-43c1-897a-a0ccfeeacaf0" />
 
+<a href="https://glama.ai/mcp/servers/@flipt-io/mcp-server-flipt">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@flipt-io/mcp-server-flipt/badge" alt="Flipt Server MCP server" />
+</a>
+
 ## Features
 
 - List, create, update, and delete namespaces, flags, segments, rules, and more
