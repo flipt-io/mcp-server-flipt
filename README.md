@@ -15,6 +15,10 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [F
 - Toggle flags on/off
 - Manage constraints, variants, distributions, and rollouts
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/flipt-io-mcp-server-flipt).
+
 ## Usage
 
 Once the server is running, it will:
