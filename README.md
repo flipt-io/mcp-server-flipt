@@ -58,7 +58,7 @@ docker run -d --name mcp-server-flipt ghcr.io/flipt-io/mcp-server-flipt:latest
 
 The server can be configured using environment variables:
 
-- `FLIPT_API_URL`: The URL of the Flipt API (default: <http://localhost:8080>)
+- `FLIPT_URL`: The URL of the Flipt API (default: <http://localhost:8080>)
 - `FLIPT_API_KEY`: The API key to use for the Flipt API (optional)
 
 You can set these in a `.env` file in the directory where you run the server.
