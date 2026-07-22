@@ -22,7 +22,7 @@ const server = new McpServer(
 );
 
 // Namespace tools
-server.tool('list_namespaces', {}, async args => {
+server.tool('list_namespaces', {}, async _args => {
   const namespaces = await fliptClient.listNamespaces();
   return {
     content: [
@@ -95,7 +95,7 @@ server.tool(
       const updatedNamespace = {
         ...currentNamespace,
         name: args.name || currentNamespace.name,
-        description: args.description || currentNamespace.description,
+        description: args.description ?? currentNamespace.description,
       };
 
       const namespace = await fliptClient.updateNamespace(
@@ -305,8 +305,8 @@ server.tool(
       const updatedFlag = {
         ...currentFlag,
         name: args.name || currentFlag.name,
-        description: args.description || currentFlag.description,
-        enabled: args.enabled || currentFlag.enabled,
+        description: args.description ?? currentFlag.description,
+        enabled: args.enabled ?? currentFlag.enabled,
       };
 
       const flag = await fliptClient.updateFlag(
@@ -563,7 +563,7 @@ server.tool(
       const updatedSegment = {
         ...currentSegment,
         name: args.name || currentSegment.name,
-        description: args.description || currentSegment.description,
+        description: args.description ?? currentSegment.description,
         matchType: args.matchType || currentSegment.matchType,
       };
 

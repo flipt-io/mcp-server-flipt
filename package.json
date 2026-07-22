@@ -35,6 +35,7 @@
     "fmt": "prettier --write 'src/**/*.ts' --ignore-path .prettierignore",
     "fmt:check": "prettier --check 'src/**/*.ts' --ignore-path .prettierignore",
     "prepublishOnly": "npm run build",
+    "version": "node scripts/sync-version.js && git add src/version.ts",
     "postbuild": "shx chmod +x dist/*.js bin/cli.js",
     "prepare": "npm run build && shx chmod +x bin/cli.js"
   },

@@ -42,7 +42,7 @@ export class FliptClient {
     this.baseUrl = process.env.FLIPT_URL || 'http://localhost:8080';
     this.apiKey = process.env.FLIPT_API_KEY || undefined;
 
-    const serverConfig = new ServerConfiguration<{}>(this.baseUrl, {});
+    const serverConfig = new ServerConfiguration<Record<string, string>>(this.baseUrl, {});
 
     const config = createConfiguration({
       baseServer: serverConfig,
