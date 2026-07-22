@@ -36,6 +36,7 @@ export default [
       'dist/**',
       'node_modules/**',
       'src/generated/**',
+      'src/tests/**',
       '**/*.js',
       '*.config.js',
     ],
