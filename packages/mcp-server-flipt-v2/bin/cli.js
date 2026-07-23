@@ -6,9 +6,7 @@ try {
 
   // Start the server
   startServer();
-
-  console.log('Flipt MCP Server started. Press Ctrl+C to stop.');
 } catch (error) {
-  console.error('Error starting Flipt MCP Server:', error.message);
+  console.error('Error starting Flipt v2 MCP Server:', error.message);
   process.exit(1);
-} 
+}

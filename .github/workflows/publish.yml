@@ -1,40 +1,68 @@
 name: Publish
 
+# Tag schemes:
+#   v*                       -> publishes @flipt-io/mcp-server-flipt (v1, legacy scheme)
+#   mcp-server-flipt-v2@*    -> publishes @flipt-io/mcp-server-flipt-v2
 on:
   push:
     tags:
-      - 'v*' # Trigger on version tags
+      - 'v*'
+      - 'mcp-server-flipt-v2@*'
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Parse tag
+        id: parse
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" == mcp-server-flipt-v2@* ]]; then
+            echo "package=mcp-server-flipt-v2" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#mcp-server-flipt-v2@}" >> "$GITHUB_OUTPUT"
+          else
+            echo "package=mcp-server-flipt" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          fi
+
   npm:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: pnpm
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm --filter "@flipt-io/${{ needs.setup.outputs.package }}" build
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: pnpm --filter "@flipt-io/${{ needs.setup.outputs.package }}" publish --access public --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }} 
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_KEY }}
 
   docker:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,7 +84,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/flipt-io/mcp-server-flipt
+          images: ghcr.io/flipt-io/${{ needs.setup.outputs.package }}
 
       - name: Build and Push
         uses: docker/build-push-action@v6
@@ -64,5 +92,9 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            PACKAGE=${{ needs.setup.outputs.package }}
+          tags: |
+            ghcr.io/flipt-io/${{ needs.setup.outputs.package }}:${{ needs.setup.outputs.version }}
+            ghcr.io/flipt-io/${{ needs.setup.outputs.package }}:latest
           labels: ${{ steps.meta.outputs.labels }}

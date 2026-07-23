@@ -1,0 +1,51 @@
+{
+  "name": "@flipt-io/mcp-server-flipt",
+  "version": "0.0.3",
+  "description": "Model Context Protocol server for Flipt (v1 API)",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "author": "Flipt Devs <dev@flipt.io>",
+  "homepage": "https://flipt.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flipt-io/mcp-server-flipt.git",
+    "directory": "packages/mcp-server-flipt"
+  },
+  "bugs": {
+    "url": "https://github.com/flipt-io/mcp-server-flipt/issues"
+  },
+  "license": "Apache-2.0",
+  "bin": {
+    "mcp-server-flipt": "./bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "start": "node bin/cli.js",
+    "dev": "tsx src/index.ts",
+    "test": "jest",
+    "prepublishOnly": "pnpm run build",
+    "version": "node scripts/sync-version.js && git add src/version.ts",
+    "postbuild": "shx chmod +x dist/*.js bin/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "~1.7.0",
+    "dotenv": "^16.4.1",
+    "whatwg-fetch": "^3.6.20",
+    "zod": "~3.24.2"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.11.5",
+    "jest": "^29.7.0",
+    "shx": "^0.3.4",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.3.3"
+  }
+}

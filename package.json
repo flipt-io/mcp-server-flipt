@@ -1,9 +1,7 @@
 {
-  "name": "@flipt-io/mcp-server-flipt",
-  "version": "0.0.3",
-  "description": "Model Context Protocol server for Flipt",
-  "main": "dist/index.js",
-  "type": "commonjs",
+  "name": "mcp-server-flipt-monorepo",
+  "private": true,
+  "description": "Model Context Protocol servers for Flipt (v1 and v2)",
   "author": "Flipt Devs <dev@flipt.io>",
   "homepage": "https://flipt.io",
   "repository": {
@@ -14,53 +12,25 @@
     "url": "https://github.com/flipt-io/mcp-server-flipt/issues"
   },
   "license": "Apache-2.0",
-  "bin": {
-    "mcp-server-flipt": "./bin/cli.js"
-  },
-  "files": [
-    "dist",
-    "bin"
-  ],
-  "eslintConfig": {
-    "type": "module"
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
-    "build": "tsc",
-    "check": "tsc --noEmit",
-    "start": "node bin/cli.js",
-    "dev": "tsx src/index.ts",
-    "test": "jest",
-    "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/generated/**'",
-    "lint:fix": "eslint 'src/**/*.ts' --ignore-pattern 'src/generated/**' --fix",
-    "fmt": "prettier --write 'src/**/*.ts' --ignore-path .prettierignore",
-    "fmt:check": "prettier --check 'src/**/*.ts' --ignore-path .prettierignore",
-    "prepublishOnly": "npm run build",
-    "version": "node scripts/sync-version.js && git add src/version.ts",
-    "postbuild": "shx chmod +x dist/*.js bin/cli.js",
-    "prepare": "npm run build && shx chmod +x bin/cli.js"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.7.0",
-    "axios": "^1.6.7",
-    "dotenv": "^16.4.1",
-    "whatwg-fetch": "^3.6.20",
-    "zod": "^3.22.4"
+    "build": "pnpm -r build",
+    "check": "pnpm -r check",
+    "test": "pnpm -r test",
+    "lint": "eslint 'packages/*/src/**/*.ts'",
+    "lint:fix": "eslint 'packages/*/src/**/*.ts' --fix",
+    "fmt": "prettier --write 'packages/*/src/**/*.ts' --ignore-path .prettierignore",
+    "fmt:check": "prettier --check 'packages/*/src/**/*.ts' --ignore-path .prettierignore"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
-    "@openapitools/openapi-generator-cli": "^2.7.0",
-    "@types/jest": "^29.5.11",
-    "@types/node": "^20.11.5",
-    "@typescript-eslint/eslint-plugin": "^8.26.1",
-    "@typescript-eslint/parser": "^8.26.1",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
-    "jest": "^29.7.0",
     "prettier": "^3.5.3",
-    "shx": "^0.3.4",
-    "ts-jest": "^29.1.1",
-    "tsx": "^4.19.3",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.26.1"
   }

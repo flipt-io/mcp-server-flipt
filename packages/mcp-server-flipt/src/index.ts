@@ -1316,7 +1316,8 @@ function startServer() {
   // Connect the server to STDIO transport
   const transport = new StdioServerTransport();
   server.connect(transport);
-  console.log(`Flipt MCP Server running`);
+  // stderr, not stdout: stdout carries the JSON-RPC protocol stream
+  console.error(`Flipt MCP Server running`);
 }
 
 // If this file is run directly, start the server

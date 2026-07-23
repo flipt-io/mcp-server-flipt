@@ -1,10 +1,9 @@
 node_modules
-dist
+**/dist
 coverage
 .vscode
 .idea
 .git
 *.md
 *.json
-src/generated
-src/generated/**/* 
+packages/*/src/generated
