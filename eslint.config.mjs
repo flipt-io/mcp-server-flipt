@@ -35,7 +35,6 @@ export default [
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
-      'packages/*/src/generated/**',
       'packages/*/src/tests/**',
       '**/*.js',
       '*.config.js',

@@ -1046,6 +1046,7 @@ server.tool(
     flagKey: z.string().min(1),
     ruleId: z.string().min(1),
     distributionId: z.string().min(1),
+    variantId: z.string().min(1).optional(),
   },
   async args => {
     try {
@@ -1053,7 +1054,8 @@ server.tool(
         args.namespaceKey,
         args.flagKey,
         args.ruleId,
-        args.distributionId
+        args.distributionId,
+        args.variantId
       );
 
       return {

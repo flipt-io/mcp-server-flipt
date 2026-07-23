@@ -6,4 +6,3 @@ coverage
 .git
 *.md
 *.json
-packages/*/src/generated
