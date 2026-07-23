@@ -10,7 +10,7 @@ This repository contains two packages, one per major Flipt version:
 
 | Package | Flipt version | npm | Docker |
 | --- | --- | --- | --- |
-| [`packages/mcp-server-flipt`](packages/mcp-server-flipt) | Flipt v1 | `@flipt-io/mcp-server-flipt` | `ghcr.io/flipt-io/mcp-server-flipt` |
+| [`packages/mcp-server-flipt`](packages/mcp-server-flipt) | [Flipt v1](https://docs.flipt.io/v1) | `@flipt-io/mcp-server-flipt` | `ghcr.io/flipt-io/mcp-server-flipt` |
 | [`packages/mcp-server-flipt-v2`](packages/mcp-server-flipt-v2) | [Flipt v2](https://docs.flipt.io/v2) | `@flipt-io/mcp-server-flipt-v2` | `ghcr.io/flipt-io/mcp-server-flipt-v2` |
 
 Not sure which one you need? If your Flipt server has environments and Git-backed storage, it is v2 — use `@flipt-io/mcp-server-flipt-v2`. See each package's README for installation, configuration, and the full tool catalog.

@@ -4,7 +4,7 @@
 [![smithery badge](https://smithery.ai/badge/@flipt-io/mcp-server-flipt)](https://smithery.ai/install/@flipt-io/mcp-server-flipt)
 [![MseeP.ai Security Assessment Badge](https://mseep.net/mseep-audited.png)](https://mseep.ai/app/flipt-io-mcp-server-flipt)
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt](https://flipt.io) v1, allowing AI assistants to interact with feature flags.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for [Flipt v1](https://docs.flipt.io/v1), allowing AI assistants to interact with feature flags.
 
 Using [Flipt v2](https://docs.flipt.io/v2)? Use [`@flipt-io/mcp-server-flipt-v2`](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt-v2) instead.
 
