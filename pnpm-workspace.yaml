@@ -1,0 +1,10 @@
+packages:
+  - 'packages/*'
+# zod 3.25+ / zod-to-json-schema 3.25+ break @modelcontextprotocol/sdk 1.7.x
+# (TS2589 type blowups at compile time, missing 'zod/v3' subpath at runtime).
+overrides:
+  zod: ~3.24.2
+  zod-to-json-schema: ~3.24.3
+allowBuilds:
+  '@openapitools/openapi-generator-cli': true
+  esbuild: true

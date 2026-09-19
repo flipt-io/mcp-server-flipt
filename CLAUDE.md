@@ -1,0 +1,69 @@
+# AGENTS.md
+
+This file provides guidance to AI agents when working with code in this repository.
+
+## Project Overview
+
+A pnpm-workspace monorepo of Model Context Protocol (MCP) servers for [Flipt](https://flipt.io) feature flags, exposing Flipt's REST APIs as MCP tools and prompts over STDIO transport:
+
+- `packages/mcp-server-flipt` — npm `@flipt-io/mcp-server-flipt`, targets the Flipt **v1** API (namespaces, flags, segments, rules, rollouts, constraints, variants, distributions, evaluation).
+- `packages/mcp-server-flipt-v2` — npm `@flipt-io/mcp-server-flipt-v2`, targets the Flipt **v2** API (everything above plus environments and branch environments).
+
+## Commands
+
+Run from the repository root:
+
+```bash
+pnpm install       # install all workspace dependencies
+pnpm -r build      # compile both packages to their dist/ (postbuild chmods dist + bin/cli.js)
+pnpm -r check      # typecheck only (tsc --noEmit)
+pnpm -r test       # Jest (ts-jest); tests live in each package's src/tests/
+pnpm lint          # ESLint over packages/*/src, excludes generated + tests
+pnpm lint:fix
+pnpm fmt           # Prettier write
+pnpm fmt:check
+
+# scope to one package (dev runs from source with tsx)
+pnpm --filter @flipt-io/mcp-server-flipt-v2 dev
+pnpm --filter @flipt-io/mcp-server-flipt-v2 test
+```
+
+To run a single test: `pnpm --filter <pkg> exec jest path/to/tests/foo.test.ts` or `... exec jest -t "test name"`.
+
+Runtime configuration comes from env vars (or a `.env` file, loaded via dotenv): `FLIPT_URL` (default `http://localhost:8080`), optional `FLIPT_API_KEY` (sent as a Bearer token), and — v2 only — `FLIPT_ENVIRONMENT` (default environment when a tool call omits `environmentKey`; defaults to `default`).
+
+## Architecture
+
+Both packages follow the same shape: `src/index.ts` registers every tool and prompt inline via `server.tool(name, [description,] zodShape, handler)` against a single `McpServer`; handlers call the package's Flipt client, return results as JSON text content, catch errors and return `isError: true`; resource-style URIs (`flipt://...`) are attached in `_meta`; `startServer()` wires the STDIO transport; `bin/cli.js` is the published entrypoint requiring `dist/index.js`. Anything logged from server code must go to **stderr** (`console.error`) — stdout carries the JSON-RPC stream.
+
+### packages/mcp-server-flipt (v1)
+
+- `src/services/fliptClient.ts` — hand-written thin fetch client for the v1 REST API (`/api/v1/...`, `/evaluate/v1/...`); types in `src/services/types.ts` mirror [Flipt's v1 OpenAPI spec](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/openapi.yaml). List methods swallow errors and return `[]` (tool handlers rely on this); everything else throws `FliptApiError`.
+- API quirks encoded in the client and covered by `src/tests/fliptClient.test.ts`: the rollout list response nests rollouts under a `rules` property, and DELETE distribution requires the distribution's `variantId` as a query param (auto-looked-up from the rule when the caller omits it).
+- Update tools follow read-merge-write: fetch the entity, merge changed fields, call the update API (Flipt updates are full replacements). Merge optional fields with `??`, never `||` — `||` silently drops valid falsy values like `enabled: false`.
+
+### packages/mcp-server-flipt-v2
+
+- `src/services/fliptClientV2.ts` — **hand-written** thin fetch client (no codegen); types in `src/services/types.ts` mirror the specs at [flipt rpc/v2](https://github.com/flipt-io/flipt/tree/v2/rpc/v2) (management) and [rpc/flipt/openapi.yaml](https://github.com/flipt-io/flipt/blob/v2/rpc/flipt/openapi.yaml) (evaluation — v2 still serves `/evaluate/v1/*` but requires `environmentKey` in each request).
+- v2 data model: flags and segments are whole documents under the generic resources API (`/api/v2/environments/{env}/namespaces/{ns}/resources/...`, typeUrl `flipt.core.Flag` / `flipt.core.Segment`). Variants, rules, rollouts, distributions, and constraints are arrays inside those documents — there are no per-entity endpoints. Sub-entity tools are read-merge-write on the parent via `mutateFlag`/`mutateSegment`, passing the read `revision` back so stale writes fail (`FliptApiError.isConflict`, HTTP 409/412). The `??`-not-`||` merge rule applies here too and is regression-tested in `src/tests/fliptClientV2.test.ts`.
+- Sub-entities have no ids in v2: variants and distributions are addressed by key, rules/rollouts/constraints by array index.
+
+### Dependency pinning (important)
+
+`@modelcontextprotocol/sdk` is pinned `~1.7.0` and `zod` `~3.24.2` in both packages, with matching root `overrides` in `pnpm-workspace.yaml`. zod 3.25+ / zod-to-json-schema 3.25+ break sdk 1.7: TS2589 type-instantiation blowups (tsc OOM) at compile time and a missing `zod/v3` subpath at runtime. Don't bump one without the other; upgrading means moving sdk + zod + zod-to-json-schema together and verifying `pnpm -r check` completes.
+
+## Adding a new MCP tool
+
+1. Add/verify the API method on the package's client (both are thin hand-written fetch clients: `FliptClient` adds a `request()` call; `FliptClientV2` adds a `request()` call or a `mutateFlag`/`mutateSegment` merge).
+2. Register the tool in that package's `src/index.ts` with a zod shape, following the existing pattern (v2 has `ok()`/`fail()` helpers and a shared optional `environmentKey` arg).
+
+## Versioning & publishing
+
+- Each package's `src/version.ts` is regenerated from its `package.json` by `scripts/sync-version.js` (runs via the `version` lifecycle script); a test fails if they drift. Bump with `pnpm version <bump> --no-git-tag-version` inside the package dir, then tag manually.
+- Tags drive `.github/workflows/publish.yml`: `vX.Y.Z` publishes the v1 package (legacy scheme), `mcp-server-flipt-v2@X.Y.Z` publishes v2. Each publishes to npm and ghcr.io (`ghcr.io/flipt-io/<package-dir-name>`). Don't let `pnpm version` create its default `vX.Y.Z` tag for a v2 bump — that would trigger a v1 release.
+- One parameterized root `Dockerfile` builds either package via `--build-arg PACKAGE=<dir-name>` (default: v1) using `pnpm deploy --prod --legacy`.
+- `smithery.yaml` (root) is the Smithery config for the **v1** package only; it maps `fliptApiUrl`/`fliptApiKey` onto `FLIPT_URL`/`FLIPT_API_KEY` — keep in sync if env var names change. A Smithery listing for v2 is a known follow-up.
+
+## Local e2e against Flipt v2
+
+Build Flipt from a v2 checkout (`go build -o /tmp/flipt ./cmd/flipt`) or `docker run -p 8080:8080 docker.flipt.io/flipt/flipt:v2`, then point the server at it (`FLIPT_URL=http://localhost:8080 pnpm --filter @flipt-io/mcp-server-flipt-v2 dev`) and drive it with `npx @modelcontextprotocol/inspector`.

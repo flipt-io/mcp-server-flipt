@@ -14,7 +14,7 @@ export default [
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        project: './tsconfig.json',
+        projectService: true,
       },
     },
     plugins: {
@@ -33,11 +33,11 @@ export default [
   },
   {
     ignores: [
-      'dist/**',
-      'node_modules/**',
-      'src/generated/**',
+      '**/dist/**',
+      '**/node_modules/**',
+      'packages/*/src/tests/**',
       '**/*.js',
       '*.config.js',
     ],
   },
-]; 
+];
