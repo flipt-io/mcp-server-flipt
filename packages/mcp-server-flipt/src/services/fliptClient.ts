@@ -1,37 +1,38 @@
 import * as dotenv from 'dotenv';
 
-// Import from the generated API
-import { BearerAuthAuthentication, createConfiguration } from '../generated/api/index';
-import { ServerConfiguration } from '../generated/api/servers';
 import {
-  FlagsServiceApi,
-  NamespacesServiceApi,
-  SegmentsServiceApi,
-  RulesServiceApi,
-  RolloutsServiceApi,
-  VariantsServiceApi,
-  ConstraintsServiceApi,
-  DistributionsServiceApi,
-  EvaluationServiceApi,
-} from '../generated/api/index';
-import { CreateFlagRequestTypeEnum } from '../generated/api/models/CreateFlagRequest';
-import { CreateSegmentRequestMatchTypeEnum } from '../generated/api/models/CreateSegmentRequest';
-import { UpdateSegmentRequestMatchTypeEnum } from '../generated/api/models/UpdateSegmentRequest';
+  BatchEvaluationRequest,
+  Flag,
+  FlagList,
+  Namespace,
+  NamespaceList,
+  Rollout,
+  RolloutList,
+  Rule,
+  RuleList,
+  Segment,
+  SegmentList,
+  Constraint,
+  Distribution,
+  Variant,
+} from './types';
+
+const enc = encodeURIComponent;
+
+export class FliptApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'FliptApiError';
+    this.status = status;
+  }
+}
 
 /**
- * FliptClient implementation using the generated API code
+ * Thin hand-written client for the Flipt v1 REST API.
  */
 export class FliptClient {
-  private flagsApi: FlagsServiceApi;
-  private namespacesApi: NamespacesServiceApi;
-  private segmentsApi: SegmentsServiceApi;
-  private rulesApi: RulesServiceApi;
-  private rolloutsApi: RolloutsServiceApi;
-  private variantsApi: VariantsServiceApi;
-  private constraintsApi: ConstraintsServiceApi;
-  private distributionsApi: DistributionsServiceApi;
-  private evaluationApi: EvaluationServiceApi;
-
   private baseUrl: string;
   private apiKey: string | undefined;
 
@@ -39,54 +40,49 @@ export class FliptClient {
     // Load environment variables
     dotenv.config();
 
-    this.baseUrl = process.env.FLIPT_URL || 'http://localhost:8080';
+    this.baseUrl = (process.env.FLIPT_URL ?? 'http://localhost:8080').replace(/\/+$/, '');
     this.apiKey = process.env.FLIPT_API_KEY || undefined;
+  }
 
-    const serverConfig = new ServerConfiguration<Record<string, string>>(this.baseUrl, {});
-
-    const config = createConfiguration({
-      baseServer: serverConfig,
+  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const response = await fetch(this.baseUrl + path, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
-    if (this.apiKey) {
-      config.authMethods.default = new BearerAuthAuthentication({
-        getToken: () => Promise.resolve(this.apiKey as string),
-      });
+    if (!response.ok) {
+      throw new FliptApiError(response.status, await errorMessage(response));
     }
 
-    this.flagsApi = new FlagsServiceApi(config);
-    this.namespacesApi = new NamespacesServiceApi(config);
-    this.segmentsApi = new SegmentsServiceApi(config);
-    this.rulesApi = new RulesServiceApi(config);
-    this.rolloutsApi = new RolloutsServiceApi(config);
-    this.variantsApi = new VariantsServiceApi(config);
-    this.constraintsApi = new ConstraintsServiceApi(config);
-    this.distributionsApi = new DistributionsServiceApi(config);
-    this.evaluationApi = new EvaluationServiceApi(config);
+    const text = await response.text();
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 
   // Namespace methods
-  async createNamespace(key: string, name: string, description?: string) {
+  async createNamespace(key: string, name: string, description?: string): Promise<Namespace> {
     try {
-      const response = await this.namespacesApi.createNamespace({
+      return await this.request<Namespace>('POST', '/api/v1/namespaces', {
         key,
         name,
         description,
       });
-      return response;
     } catch (error) {
       console.error('Error creating namespace:', error);
       throw error;
     }
   }
 
-  async updateNamespace(key: string, name: string, description?: string) {
+  async updateNamespace(key: string, name: string, description?: string): Promise<Namespace> {
     try {
-      const response = await this.namespacesApi.updateNamespace(key, {
+      return await this.request<Namespace>('PUT', `/api/v1/namespaces/${enc(key)}`, {
         name,
         description,
       });
-      return response;
     } catch (error) {
       console.error('Error updating namespace:', error);
       throw error;
@@ -95,7 +91,7 @@ export class FliptClient {
 
   async deleteNamespace(key: string) {
     try {
-      await this.namespacesApi.deleteNamespace(key);
+      await this.request<void>('DELETE', `/api/v1/namespaces/${enc(key)}`);
       return { success: true };
     } catch (error) {
       console.error('Error deleting namespace:', error);
@@ -103,27 +99,19 @@ export class FliptClient {
     }
   }
 
-  async listNamespaces() {
+  async listNamespaces(): Promise<Namespace[]> {
     try {
-      const response = await this.namespacesApi.listNamespaces();
-
-      // The response is a NamespaceList object, not a response with a data property
-      if (response && response.namespaces) {
-        return response.namespaces;
-      } else {
-        console.error('Unexpected response structure:', response);
-        return [];
-      }
+      const response = await this.request<NamespaceList>('GET', '/api/v1/namespaces');
+      return response?.namespaces ?? [];
     } catch (error) {
       console.error('Error getting namespaces:', error);
       return [];
     }
   }
 
-  async getNamespace(key: string) {
+  async getNamespace(key: string): Promise<Namespace> {
     try {
-      const response = await this.namespacesApi.getNamespace(key);
-      return response;
+      return await this.request<Namespace>('GET', `/api/v1/namespaces/${enc(key)}`);
     } catch (error) {
       console.error(`Error getting namespace ${key}:`, error);
       throw error;
@@ -138,21 +126,15 @@ export class FliptClient {
     description?: string,
     enabled?: boolean,
     type?: string
-  ) {
+  ): Promise<Flag> {
     try {
-      const flagType =
-        type === 'VARIANT_FLAG_TYPE'
-          ? CreateFlagRequestTypeEnum.VariantFlagType
-          : CreateFlagRequestTypeEnum.BooleanFlagType;
-
-      const response = await this.flagsApi.createFlag(namespaceKey, {
+      return await this.request<Flag>('POST', `/api/v1/namespaces/${enc(namespaceKey)}/flags`, {
         key,
         name,
         description,
         enabled: enabled ?? true,
-        type: flagType,
+        type: type === 'VARIANT_FLAG_TYPE' ? 'VARIANT_FLAG_TYPE' : 'BOOLEAN_FLAG_TYPE',
       });
-      return response;
     } catch (error) {
       console.error('Error creating flag:', error);
       throw error;
@@ -165,14 +147,17 @@ export class FliptClient {
     name: string,
     description?: string,
     enabled?: boolean
-  ) {
+  ): Promise<Flag> {
     try {
-      const response = await this.flagsApi.updateFlag(namespaceKey, key, {
-        name,
-        description,
-        enabled,
-      });
-      return response;
+      return await this.request<Flag>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(key)}`,
+        {
+          name,
+          description,
+          enabled,
+        }
+      );
     } catch (error) {
       console.error('Error updating flag:', error);
       throw error;
@@ -181,7 +166,10 @@ export class FliptClient {
 
   async deleteFlag(namespaceKey: string, key: string) {
     try {
-      await this.flagsApi.deleteFlag(namespaceKey, key);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(key)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting flag:', error);
@@ -189,25 +177,25 @@ export class FliptClient {
     }
   }
 
-  async listFlags(namespaceKey: string) {
+  async listFlags(namespaceKey: string): Promise<Flag[]> {
     try {
-      const response = await this.flagsApi.listFlags(namespaceKey);
-      if (response && response.flags) {
-        return response.flags;
-      } else {
-        console.error('Unexpected response structure:', response);
-        return [];
-      }
+      const response = await this.request<FlagList>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags`
+      );
+      return response?.flags ?? [];
     } catch (error) {
       console.error(`Error getting flags for namespace ${namespaceKey}:`, error);
       return [];
     }
   }
 
-  async getFlag(namespaceKey: string, key: string) {
+  async getFlag(namespaceKey: string, key: string): Promise<Flag> {
     try {
-      const response = await this.flagsApi.getFlag(namespaceKey, key);
-      return response;
+      return await this.request<Flag>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(key)}`
+      );
     } catch (error) {
       console.error(`Error getting flag ${key} in namespace ${namespaceKey}:`, error);
       throw error;
@@ -221,20 +209,18 @@ export class FliptClient {
     name: string,
     description?: string,
     matchType?: string
-  ) {
+  ): Promise<Segment> {
     try {
-      const segmentMatchType =
-        matchType === 'ALL_MATCH_TYPE'
-          ? CreateSegmentRequestMatchTypeEnum.AllMatchType
-          : CreateSegmentRequestMatchTypeEnum.AnyMatchType;
-
-      const response = await this.segmentsApi.createSegment(namespaceKey, {
-        key,
-        name,
-        description,
-        matchType: segmentMatchType,
-      });
-      return response;
+      return await this.request<Segment>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments`,
+        {
+          key,
+          name,
+          description,
+          matchType: matchType === 'ALL_MATCH_TYPE' ? 'ALL_MATCH_TYPE' : 'ANY_MATCH_TYPE',
+        }
+      );
     } catch (error) {
       console.error('Error creating segment:', error);
       throw error;
@@ -247,19 +233,17 @@ export class FliptClient {
     name: string,
     description?: string,
     matchType?: string
-  ) {
+  ): Promise<Segment> {
     try {
-      const segmentMatchType =
-        matchType === 'ALL_MATCH_TYPE'
-          ? UpdateSegmentRequestMatchTypeEnum.AllMatchType
-          : UpdateSegmentRequestMatchTypeEnum.AnyMatchType;
-
-      const response = await this.segmentsApi.updateSegment(namespaceKey, key, {
-        name,
-        description,
-        matchType: segmentMatchType,
-      });
-      return response;
+      return await this.request<Segment>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(key)}`,
+        {
+          name,
+          description,
+          matchType: matchType === 'ALL_MATCH_TYPE' ? 'ALL_MATCH_TYPE' : 'ANY_MATCH_TYPE',
+        }
+      );
     } catch (error) {
       console.error('Error updating segment:', error);
       throw error;
@@ -268,7 +252,10 @@ export class FliptClient {
 
   async deleteSegment(namespaceKey: string, key: string) {
     try {
-      await this.segmentsApi.deleteSegment(namespaceKey, key);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(key)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting segment:', error);
@@ -276,25 +263,25 @@ export class FliptClient {
     }
   }
 
-  async listSegments(namespaceKey: string) {
+  async listSegments(namespaceKey: string): Promise<Segment[]> {
     try {
-      const response = await this.segmentsApi.listSegments(namespaceKey);
-      if (response && response.segments) {
-        return response.segments;
-      } else {
-        console.error('Unexpected response structure:', response);
-        return [];
-      }
+      const response = await this.request<SegmentList>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments`
+      );
+      return response?.segments ?? [];
     } catch (error) {
       console.error(`Error getting segments for namespace ${namespaceKey}:`, error);
       return [];
     }
   }
 
-  async getSegment(namespaceKey: string, key: string) {
+  async getSegment(namespaceKey: string, key: string): Promise<Segment> {
     try {
-      const response = await this.segmentsApi.getSegment(namespaceKey, key);
-      return response;
+      return await this.request<Segment>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(key)}`
+      );
     } catch (error) {
       console.error(`Error getting segment ${key} in namespace ${namespaceKey}:`, error);
       throw error;
@@ -308,14 +295,17 @@ export class FliptClient {
     segmentKey: string,
     rank?: number,
     segmentOperator?: string
-  ) {
+  ): Promise<Rule> {
     try {
-      const response = await this.rulesApi.createRule(namespaceKey, flagKey, {
-        segmentKey,
-        rank: rank || 1,
-        segmentOperator: (segmentOperator as any) || 'OR_SEGMENT_OPERATOR',
-      });
-      return response;
+      return await this.request<Rule>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules`,
+        {
+          segmentKey,
+          rank: rank || 1,
+          segmentOperator: segmentOperator || 'OR_SEGMENT_OPERATOR',
+        }
+      );
     } catch (error) {
       console.error('Error creating rule:', error);
       throw error;
@@ -328,14 +318,17 @@ export class FliptClient {
     id: string,
     segmentKey?: string,
     segmentOperator?: string
-  ) {
+  ): Promise<Rule> {
     try {
-      const response = await this.rulesApi.updateRule(namespaceKey, flagKey, id, {
-        id,
-        segmentKey,
-        segmentOperator: segmentOperator as any,
-      });
-      return response;
+      return await this.request<Rule>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/${enc(id)}`,
+        {
+          id,
+          segmentKey,
+          segmentOperator,
+        }
+      );
     } catch (error) {
       console.error('Error updating rule:', error);
       throw error;
@@ -344,7 +337,10 @@ export class FliptClient {
 
   async deleteRule(namespaceKey: string, flagKey: string, id: string) {
     try {
-      await this.rulesApi.deleteRule(namespaceKey, flagKey, id);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/${enc(id)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting rule:', error);
@@ -354,9 +350,11 @@ export class FliptClient {
 
   async orderRules(namespaceKey: string, flagKey: string, ruleIds: string[]) {
     try {
-      await this.rulesApi.orderRules(namespaceKey, flagKey, {
-        ruleIds,
-      });
+      await this.request<void>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/order`,
+        { ruleIds }
+      );
       return { success: true };
     } catch (error) {
       console.error('Error ordering rules:', error);
@@ -364,15 +362,13 @@ export class FliptClient {
     }
   }
 
-  async listRules(namespaceKey: string, flagKey: string) {
+  async listRules(namespaceKey: string, flagKey: string): Promise<Rule[]> {
     try {
-      const response = await this.rulesApi.listRules(namespaceKey, flagKey);
-      if (response && response.rules) {
-        return response.rules;
-      } else {
-        console.error('Unexpected response structure:', response);
-        return [];
-      }
+      const response = await this.request<RuleList>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules`
+      );
+      return response?.rules ?? [];
     } catch (error) {
       console.error(`Error getting rules for flag ${flagKey} in namespace ${namespaceKey}:`, error);
       return [];
@@ -387,15 +383,18 @@ export class FliptClient {
     description?: string,
     segment?: any,
     threshold?: any
-  ) {
+  ): Promise<Rollout> {
     try {
-      const response = await this.rolloutsApi.createRollout(namespaceKey, flagKey, {
-        rank,
-        description,
-        segment,
-        threshold,
-      });
-      return response;
+      return await this.request<Rollout>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rollouts`,
+        {
+          rank,
+          description,
+          segment,
+          threshold,
+        }
+      );
     } catch (error) {
       console.error('Error creating rollout:', error);
       throw error;
@@ -409,15 +408,18 @@ export class FliptClient {
     description?: string,
     segment?: any,
     threshold?: any
-  ) {
+  ): Promise<Rollout> {
     try {
-      const response = await this.rolloutsApi.updateRollout(namespaceKey, flagKey, id, {
-        id,
-        description,
-        segment,
-        threshold,
-      });
-      return response;
+      return await this.request<Rollout>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rollouts/${enc(id)}`,
+        {
+          id,
+          description,
+          segment,
+          threshold,
+        }
+      );
     } catch (error) {
       console.error('Error updating rollout:', error);
       throw error;
@@ -426,7 +428,10 @@ export class FliptClient {
 
   async deleteRollout(namespaceKey: string, flagKey: string, id: string) {
     try {
-      await this.rolloutsApi.deleteRollout(namespaceKey, flagKey, id);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rollouts/${enc(id)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting rollout:', error);
@@ -436,9 +441,11 @@ export class FliptClient {
 
   async orderRollouts(namespaceKey: string, flagKey: string, rolloutIds: string[]) {
     try {
-      await this.rolloutsApi.orderRollouts(namespaceKey, flagKey, {
-        rolloutIds,
-      });
+      await this.request<void>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rollouts/order`,
+        { rolloutIds }
+      );
       return { success: true };
     } catch (error) {
       console.error('Error ordering rollouts:', error);
@@ -446,16 +453,14 @@ export class FliptClient {
     }
   }
 
-  async listRollouts(namespaceKey: string, flagKey: string) {
+  async listRollouts(namespaceKey: string, flagKey: string): Promise<Rollout[]> {
     try {
-      const response = await this.rolloutsApi.listRollouts(namespaceKey, flagKey);
-      // The RolloutList model has 'rules' property instead of 'rollouts'
-      if (response && response.rules) {
-        return response.rules;
-      } else {
-        console.error('Unexpected response structure:', response);
-        return [];
-      }
+      const response = await this.request<RolloutList>(
+        'GET',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rollouts`
+      );
+      // Quirk of the Flipt v1 API: the rollout list nests rollouts under 'rules'
+      return response?.rules ?? [];
     } catch (error) {
       console.error(
         `Error getting rollouts for flag ${flagKey} in namespace ${namespaceKey}:`,
@@ -474,16 +479,19 @@ export class FliptClient {
     operator: string,
     value?: string,
     description?: string
-  ) {
+  ): Promise<Constraint> {
     try {
-      const response = await this.constraintsApi.createConstraint(namespaceKey, segmentKey, {
-        type: type as any, // Using 'any' to handle the enum conversion
-        property,
-        operator,
-        value,
-        description,
-      });
-      return response;
+      return await this.request<Constraint>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(segmentKey)}/constraints`,
+        {
+          type,
+          property,
+          operator,
+          value,
+          description,
+        }
+      );
     } catch (error) {
       console.error('Error creating constraint:', error);
       throw error;
@@ -499,17 +507,20 @@ export class FliptClient {
     operator: string,
     value?: string,
     description?: string
-  ) {
+  ): Promise<Constraint> {
     try {
-      const response = await this.constraintsApi.updateConstraint(namespaceKey, segmentKey, id, {
-        id,
-        type: type as any, // Using 'any' to handle the enum conversion
-        property,
-        operator,
-        value,
-        description,
-      });
-      return response;
+      return await this.request<Constraint>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(segmentKey)}/constraints/${enc(id)}`,
+        {
+          id,
+          type,
+          property,
+          operator,
+          value,
+          description,
+        }
+      );
     } catch (error) {
       console.error('Error updating constraint:', error);
       throw error;
@@ -518,7 +529,10 @@ export class FliptClient {
 
   async deleteConstraint(namespaceKey: string, segmentKey: string, id: string) {
     try {
-      await this.constraintsApi.deleteConstraint(namespaceKey, segmentKey, id);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/segments/${enc(segmentKey)}/constraints/${enc(id)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting constraint:', error);
@@ -534,15 +548,18 @@ export class FliptClient {
     name?: string,
     description?: string,
     attachment?: string
-  ) {
+  ): Promise<Variant> {
     try {
-      const response = await this.variantsApi.createVariant(namespaceKey, flagKey, {
-        key,
-        name: name || key,
-        description,
-        attachment,
-      });
-      return response;
+      return await this.request<Variant>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/variants`,
+        {
+          key,
+          name: name || key,
+          description,
+          attachment,
+        }
+      );
     } catch (error) {
       console.error('Error creating variant:', error);
       throw error;
@@ -557,16 +574,19 @@ export class FliptClient {
     name?: string,
     description?: string,
     attachment?: string
-  ) {
+  ): Promise<Variant> {
     try {
-      const response = await this.variantsApi.updateVariant(namespaceKey, flagKey, id, {
-        id,
-        key,
-        name: name || key,
-        description,
-        attachment,
-      });
-      return response;
+      return await this.request<Variant>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/variants/${enc(id)}`,
+        {
+          id,
+          key,
+          name: name || key,
+          description,
+          attachment,
+        }
+      );
     } catch (error) {
       console.error('Error updating variant:', error);
       throw error;
@@ -575,7 +595,10 @@ export class FliptClient {
 
   async deleteVariant(namespaceKey: string, flagKey: string, id: string) {
     try {
-      await this.variantsApi.deleteVariant(namespaceKey, flagKey, id);
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/variants/${enc(id)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting variant:', error);
@@ -590,18 +613,16 @@ export class FliptClient {
     ruleId: string,
     variantId: string,
     rollout: number
-  ) {
+  ): Promise<Distribution> {
     try {
-      const response = await this.distributionsApi.createDistribution(
-        namespaceKey,
-        flagKey,
-        ruleId,
+      return await this.request<Distribution>(
+        'POST',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/${enc(ruleId)}/distributions`,
         {
           variantId,
           rollout,
         }
       );
-      return response;
     } catch (error) {
       console.error('Error creating distribution:', error);
       throw error;
@@ -615,29 +636,46 @@ export class FliptClient {
     id: string,
     variantId: string,
     rollout: number
-  ) {
+  ): Promise<Distribution> {
     try {
-      const response = await this.distributionsApi.updateDistribution(
-        namespaceKey,
-        flagKey,
-        ruleId,
-        id,
+      return await this.request<Distribution>(
+        'PUT',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/${enc(ruleId)}/distributions/${enc(id)}`,
         {
           id,
           variantId,
           rollout,
         }
       );
-      return response;
     } catch (error) {
       console.error('Error updating distribution:', error);
       throw error;
     }
   }
 
-  async deleteDistribution(namespaceKey: string, flagKey: string, ruleId: string, id: string) {
+  async deleteDistribution(
+    namespaceKey: string,
+    flagKey: string,
+    ruleId: string,
+    id: string,
+    variantId?: string
+  ) {
     try {
-      await this.distributionsApi.deleteDistribution(namespaceKey, flagKey, ruleId, id);
+      // The API requires the distribution's variantId as a query param; look
+      // it up from the rule when the caller doesn't have it.
+      let variant = variantId;
+      if (!variant) {
+        const rules = await this.listRules(namespaceKey, flagKey);
+        const rule = rules.find(r => r.id === ruleId);
+        variant = rule?.distributions?.find(d => d.id === id)?.variantId;
+        if (!variant) {
+          throw new Error(`distribution ${id} not found on rule ${ruleId} of flag ${flagKey}`);
+        }
+      }
+      await this.request<void>(
+        'DELETE',
+        `/api/v1/namespaces/${enc(namespaceKey)}/flags/${enc(flagKey)}/rules/${enc(ruleId)}/distributions/${enc(id)}?variantId=${enc(variant)}`
+      );
       return { success: true };
     } catch (error) {
       console.error('Error deleting distribution:', error);
@@ -653,13 +691,12 @@ export class FliptClient {
     context: Record<string, string> = {}
   ) {
     try {
-      const response = await this.evaluationApi.evaluateBoolean({
+      return await this.request<unknown>('POST', '/evaluate/v1/boolean', {
         namespaceKey,
         flagKey,
         entityId,
         context,
       });
-      return response;
     } catch (error) {
       console.error('Error evaluating boolean flag:', error);
       throw error;
@@ -673,13 +710,12 @@ export class FliptClient {
     context: Record<string, string> = {}
   ) {
     try {
-      const response = await this.evaluationApi.evaluateVariant({
+      return await this.request<unknown>('POST', '/evaluate/v1/variant', {
         namespaceKey,
         flagKey,
         entityId,
         context,
       });
-      return response;
     } catch (error) {
       console.error('Error evaluating variant flag:', error);
       throw error;
@@ -695,15 +731,15 @@ export class FliptClient {
     }>
   ) {
     try {
-      const response = await this.evaluationApi.evaluateBatch({
+      const batch: BatchEvaluationRequest = {
         requests: requests.map(req => ({
           namespaceKey: req.namespaceKey,
           flagKey: req.flagKey,
           entityId: req.entityId,
           context: req.context || {},
         })),
-      });
-      return response;
+      };
+      return await this.request<unknown>('POST', '/evaluate/v1/batch', batch);
     } catch (error) {
       console.error('Error evaluating batch:', error);
       throw error;
@@ -713,5 +749,23 @@ export class FliptClient {
   // Utility methods
   getBaseUrl(): string {
     return this.baseUrl;
+  }
+}
+
+async function errorMessage(response: Response): Promise<string> {
+  const fallback = `${response.status} ${response.statusText}`;
+  try {
+    const body = await response.text();
+    if (!body) {
+      return fallback;
+    }
+    try {
+      const parsed = JSON.parse(body);
+      return parsed.message ?? parsed.error ?? body;
+    } catch {
+      return body;
+    }
+  } catch {
+    return fallback;
   }
 }

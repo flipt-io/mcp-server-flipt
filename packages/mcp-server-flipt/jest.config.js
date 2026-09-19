@@ -4,12 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.ts'],
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/examples/**',
-    '!src/tests/**',
-    '!src/generated/**',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/tests/**'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
   transform: {

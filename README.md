@@ -4,13 +4,16 @@
 [![mcp-server-flipt](https://img.shields.io/npm/v/@flipt-io/mcp-server-flipt?label=%40flipt-io%2Fmcp-server-flipt)](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt)
 [![mcp-server-flipt-v2](https://img.shields.io/npm/v/@flipt-io/mcp-server-flipt-v2?label=%40flipt-io%2Fmcp-server-flipt-v2)](https://www.npmjs.com/package/@flipt-io/mcp-server-flipt-v2)
 
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/flipt-io/mcp-server-flipt)](https://archestra.ai/mcp-catalog/flipt-io__mcp-server-flipt)
+[![smithery badge](https://smithery.ai/badge/@flipt-io/mcp-server-flipt)](https://smithery.ai/install/@flipt-io/mcp-server-flipt)
+
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers for [Flipt](https://flipt.io), allowing AI assistants to interact with feature flags.
 
 This repository contains two packages, one per major Flipt version:
 
 | Package | Flipt version | npm | Docker |
 | --- | --- | --- | --- |
-| [`packages/mcp-server-flipt`](packages/mcp-server-flipt) | Flipt v1 | `@flipt-io/mcp-server-flipt` | `ghcr.io/flipt-io/mcp-server-flipt` |
+| [`packages/mcp-server-flipt`](packages/mcp-server-flipt) | [Flipt v1](https://docs.flipt.io/v1) | `@flipt-io/mcp-server-flipt` | `ghcr.io/flipt-io/mcp-server-flipt` |
 | [`packages/mcp-server-flipt-v2`](packages/mcp-server-flipt-v2) | [Flipt v2](https://docs.flipt.io/v2) | `@flipt-io/mcp-server-flipt-v2` | `ghcr.io/flipt-io/mcp-server-flipt-v2` |
 
 Not sure which one you need? If your Flipt server has environments and Git-backed storage, it is v2 — use `@flipt-io/mcp-server-flipt-v2`. See each package's README for installation, configuration, and the full tool catalog.
